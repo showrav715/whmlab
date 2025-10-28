@@ -1,0 +1,111 @@
+{
+    "service": {
+        "builder": true,
+        "name": "Service Section",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "domain": {
+        "builder": true,
+        "name": "Domain Section",
+        "content": {
+            "heading": "text",
+            "subheading": "text",
+            "text": "text"
+        }
+    },
+    "policy_pages": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Policy Pages",
+        "element": {
+            "title": "text",
+            "slug": "title",
+            "details": "textarea-nic",
+            "seo": true,
+            "modal": false
+        }
+    },
+    "faq": {
+        "builder": true,
+        "name": "FAQ Section",
+        "element": {
+            "question": "text",
+            "answer": "textarea",
+            "modal": true
+        }
+    },
+    "blog": {
+        "builder": true,
+        "name": "Announcements",
+        "element": {
+            "title": "text",
+            "slug": "title",
+            "description": "textarea-nic",
+            "seo": true,
+            "modal": false
+        }
+    },
+    "subscribe": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Subscribe Section",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "contact_us": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Contact",
+        "content": {
+            "heading": "text",
+            "description": "text",
+            "email": "text",
+            "phone": "text",
+            "address": "text"
+        }
+    },
+    "invoice_address": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Invoice Address",
+        "content": {
+            "address": "text"
+        }
+    },
+    "footer": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Footer Section",
+        "content": {
+            "description": "text"
+        }
+    },
+    "kyc": {
+        "builder": true,
+        "no_selection": true,
+        "name": "KYC Content",
+        "content": {
+            "kyc_required": "text",
+            "kyc_pending": "text",
+            "kyc_reject": "text"
+        }
+    },
+    "banned": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Banned Page",
+        "content": {
+            "heading": "text",
+            "images": {
+                "image": {
+                    "size": "360x370"
+                }
+            }
+        }
+    }
+}
