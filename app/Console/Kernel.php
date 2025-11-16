@@ -10,6 +10,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\UpdatePermissions::class,
         Commands\CreateRolePermission::class,
+        Commands\CheckExpiredSubscriptions::class,
     ];
     
     /**
@@ -20,7 +21,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Check for expired subscriptions every hour
+        $schedule->command('subscriptions:check-expired')
+                 ->hourly()
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Send daily reminder for subscriptions expiring soon
+        $schedule->command('subscriptions:check-expired')
+                 ->dailyAt('09:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

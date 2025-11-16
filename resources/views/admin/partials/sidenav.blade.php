@@ -1,6 +1,8 @@
 @php
     $sideBarLinks = json_decode($sidenav);
+   // dd($sideBarLinks);
 @endphp
+
 
 <div class="sidebar bg--dark">
     <button class="res-sidebar-close-btn"><i class="las la-times"></i></button>

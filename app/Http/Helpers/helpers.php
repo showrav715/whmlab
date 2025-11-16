@@ -16,6 +16,8 @@ use App\Models\ShoppingCart;
 use App\Notify\Notify;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Laramin\Utility\VugiChugi;
 
 
@@ -1137,4 +1139,326 @@ function convertPricingToUserCurrency($amount)
     }
     
     return convertCurrency($amount, gs('cur_text'), $userCurrencyCode);
+}
+
+function isTenant(){
+    // get current domain name
+    $domain = request()->getHost();
+    $mainDomain = env('APP_URL');
+    if($domain == $mainDomain){
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Performance optimization functions for external database operations
+ * Optimized for cPanel hosting environment
+ */
+
+/**
+ * Set script execution time limit safely for cPanel
+ */
+function setExecutionTimeLimit($seconds = 300)
+{
+    // Try different methods for cPanel compatibility
+    if (function_exists('set_time_limit') && !ini_get('safe_mode') && strpos(ini_get('disable_functions'), 'set_time_limit') === false) {
+        @set_time_limit($seconds);
+    }
+    
+    // Also try ini_set method
+    @ini_set('max_execution_time', $seconds);
+    
+    // Also increase memory limit for large operations
+    @ini_set('memory_limit', '1024M');
+    
+    return true;
+}
+
+/**
+ * Optimize script for external database operations (cPanel compatible)
+ */
+function optimizeForExternalDB()
+{
+    // Increase execution time for external database operations
+    setExecutionTimeLimit(600); // 10 minutes
+    
+    // Set PHP configurations for better performance (cPanel compatible)
+    @ini_set('max_execution_time', 600);
+    @ini_set('memory_limit', '1024M');
+    @ini_set('default_socket_timeout', 60);
+    
+    // Database specific timeouts
+    @ini_set('mysql.connect_timeout', 60);
+    @ini_set('mysql.timeout', 60);
+    
+    // Session optimization for cPanel
+    @ini_set('session.gc_maxlifetime', 3600);
+    @ini_set('session.cache_expire', 180);
+    
+    // Output buffering for cPanel
+    if (!ob_get_level()) {
+        @ob_start();
+    }
+    
+    return true;
+}
+
+/**
+ * Cache external database queries to reduce load (file-based for cPanel)
+ */
+function cacheExternalQuery($key, $callback, $minutes = 60)
+{
+    // Use file-based cache for cPanel compatibility
+    return Cache::remember($key, $minutes * 60, function() use ($callback) {
+        optimizeForExternalDB();
+        return $callback();
+    });
+}
+
+/**
+ * Execute external database operation with retry mechanism
+ */
+function executeWithRetry($callback, $maxRetries = 3, $delay = 2)
+{
+    $attempts = 0;
+    
+    while ($attempts < $maxRetries) {
+        try {
+            optimizeForExternalDB();
+            return $callback();
+        } catch (Exception $e) {
+            $attempts++;
+            
+            if ($attempts >= $maxRetries) {
+                throw $e;
+            }
+            
+            // Wait before retry
+            sleep($delay);
+        }
+    }
+}
+
+/**
+ * Batch process external database operations
+ */
+function batchProcess($data, $callback, $batchSize = 100)
+{
+    optimizeForExternalDB();
+    
+    $chunks = array_chunk($data, $batchSize);
+    $results = [];
+    
+    foreach ($chunks as $chunk) {
+        try {
+            $results[] = $callback($chunk);
+            
+            // Small delay between batches to prevent overwhelming the external database
+            usleep(100000); // 0.1 second
+            
+        } catch (Exception $e) {
+            Log::error('Batch processing error: ' . $e->getMessage());
+            continue;
+        }
+    }
+    
+    return $results;
+}
+
+/**
+ * Check if external database connection is healthy
+ */
+function isExternalDBHealthy($connection = null)
+{
+    try {
+        $connection = $connection ?: DB::connection();
+        $connection->getPdo();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/**
+ * Get external database connection with optimization
+ */
+function getOptimizedDBConnection($connectionName = null)
+{
+    try {
+        optimizeForExternalDB();
+        
+        $connection = $connectionName ? DB::connection($connectionName) : DB::connection();
+        
+        // Test connection
+        $connection->getPdo();
+        
+        return $connection;
+    } catch (Exception $e) {
+        Log::error('External DB connection failed: ' . $e->getMessage());
+        throw new Exception('External database connection failed');
+    }
+}
+
+/**
+ * Execute large external database operations in chunks
+ */
+function chunkExternalOperation($query, $chunkSize = 1000, $callback = null)
+{
+    optimizeForExternalDB();
+    
+    return $query->chunk($chunkSize, function ($records) use ($callback) {
+        if ($callback) {
+            $callback($records);
+        }
+        
+        // Clear memory after each chunk
+        if (function_exists('gc_collect_cycles')) {
+            gc_collect_cycles();
+        }
+        
+        return $records;
+    });
+}
+
+/**
+ * Monitor script performance and memory usage
+ */
+function monitorPerformance($operation = 'External DB Operation')
+{
+    $startTime = microtime(true);
+    $startMemory = memory_get_usage(true);
+    
+    return [
+        'start_time' => $startTime,
+        'start_memory' => $startMemory,
+        'operation' => $operation,
+        'end' => function() use ($startTime, $startMemory, $operation) {
+            $endTime = microtime(true);
+            $endMemory = memory_get_usage(true);
+            
+            $execution_time = round($endTime - $startTime, 4);
+            $memory_used = round(($endMemory - $startMemory) / 1024 / 1024, 2);
+            
+            Log::info("Performance Monitor - {$operation}: {$execution_time}s, Memory: {$memory_used}MB");
+            
+            return [
+                'execution_time' => $execution_time,
+                'memory_used' => $memory_used
+            ];
+        }
+    ];
+}
+
+/**
+ * Clean up resources after external database operations
+ */
+function cleanupExternalDBResources()
+{
+    // Clear Laravel query log to free memory
+    DB::flushQueryLog();
+    
+    // Force garbage collection
+    if (function_exists('gc_collect_cycles')) {
+        gc_collect_cycles();
+    }
+    
+    // Clear any temporary caches
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+}
+
+/**
+ * Example usage functions for external database operations
+ */
+
+/**
+ * Usage example for heavy external database operations
+ */
+function exampleHeavyDatabaseOperation()
+{
+    // Usage example - uncomment to use:
+    /*
+    // Start performance monitoring
+    $monitor = monitorPerformance('Heavy Database Operation');
+    
+    // Optimize for external database
+    optimizeForExternalDB();
+    
+    try {
+        // Execute with retry mechanism
+        $result = executeWithRetry(function() {
+            // Your heavy database operation here
+            return DB::table('large_table')->get();
+        });
+        
+        // Use caching for repeated operations
+        $cachedResult = cacheExternalQuery('heavy_operation_key', function() {
+            return DB::table('large_table')->where('status', 'active')->get();
+        }, 60); // Cache for 60 minutes
+        
+        // Batch process large datasets
+        $largeDataset = range(1, 10000);
+        $results = batchProcess($largeDataset, function($batch) {
+            return DB::table('processing_table')->insert($batch);
+        }, 500); // Process in batches of 500
+        
+        return $result;
+        
+    } finally {
+        // Always cleanup resources
+        cleanupExternalDBResources();
+        
+        // End performance monitoring
+        $performance = $monitor['end']();
+    }
+    */
+}
+
+/**
+ * Fast external database health check
+ */
+function quickDBHealthCheck()
+{
+    try {
+        $startTime = microtime(true);
+        
+        // Simple health check query
+        DB::select('SELECT 1');
+        
+        $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+        
+        return [
+            'healthy' => true,
+            'response_time_ms' => $responseTime,
+            'status' => $responseTime < 500 ? 'excellent' : ($responseTime < 1000 ? 'good' : 'slow')
+        ];
+        
+    } catch (Exception $e) {
+        return [
+            'healthy' => false,
+            'error' => $e->getMessage(),
+            'status' => 'failed'
+        ];
+    }
+}
+
+/**
+ * Optimize specific query for external database
+ */
+function optimizeQuery($query, $useCache = true, $cacheMinutes = 30)
+{
+    if ($useCache) {
+        $cacheKey = 'query_' . md5(serialize($query));
+        
+        return cacheExternalQuery($cacheKey, function() use ($query) {
+            optimizeForExternalDB();
+            return $query;
+        }, $cacheMinutes);
+    }
+    
+    optimizeForExternalDB();
+    return $query;
 }

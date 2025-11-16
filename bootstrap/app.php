@@ -4,6 +4,7 @@ use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckStatus;
 use App\Http\Middleware\CurrencyMiddleware;
 use App\Http\Middleware\Demo;
+use App\Http\Middleware\InitializeTenancyByDomain;
 use App\Http\Middleware\KycMiddleware;
 use App\Http\Middleware\MaintenanceMode;
 use App\Http\Middleware\RedirectIfAdmin;
@@ -48,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            InitializeTenancyByDomain::class,
             \App\Http\Middleware\LanguageMiddleware::class,
             \App\Http\Middleware\ActiveTemplateMiddleware::class,
             \App\Http\Middleware\CurrencyMiddleware::class,
@@ -74,6 +76,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'maintenance' => MaintenanceMode::class,
 
             'admin.permission' => \App\Http\Middleware\AdminPermissionMiddleware::class,
+            'tenancy' => InitializeTenancyByDomain::class,
+            'subscription.check' => \App\Http\Middleware\CheckSubscriptionExpiry::class,
+            'superadmin' => \App\Http\Middleware\SuperAdmin::class,
         ]);
 
         $middleware->validateCsrfTokens(

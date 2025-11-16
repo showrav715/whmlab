@@ -1,0 +1,100 @@
+# cPanel Optimization .htaccess Configuration
+# Place this in your public_html/.htaccess or root directory
+
+# PHP Performance Optimization for External Database
+<IfModule mod_php.c>
+    # Increase execution time for external database operations
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    
+    # Increase memory limit
+    php_value memory_limit 1024M
+    
+    # Database connection timeouts
+    php_value default_socket_timeout 60
+    php_value mysql.connect_timeout 60
+    php_value mysql.timeout 60
+    
+    # Session optimization
+    php_value session.gc_maxlifetime 3600
+    php_value session.cache_expire 180
+    
+    # File upload limits (if needed)
+    php_value upload_max_filesize 64M
+    php_value post_max_size 64M
+    
+    # Output buffering
+    php_value output_buffering On
+    php_value output_compression On
+</IfModule>
+
+# Alternative for PHP 7.4+ (if above doesn't work)
+<IfModule mod_php7.c>
+    php_value max_execution_time 600
+    php_value memory_limit 1024M
+    php_value default_socket_timeout 60
+</IfModule>
+
+# Alternative for PHP 8+ (if above doesn't work)
+<IfModule mod_php8.c>
+    php_value max_execution_time 600
+    php_value memory_limit 1024M
+    php_value default_socket_timeout 60
+</IfModule>
+
+# Enable compression for better performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Browser caching for static files
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/ico "access plus 1 month"
+    ExpiresByType image/icon "access plus 1 month"
+    ExpiresByType text/x-icon "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType application/x-shockwave-flash "access plus 1 month"
+</IfModule>
+
+# Prevent access to sensitive files
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.md">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Laravel specific settings
+RewriteEngine On
+
+# Handle Angular and Vue.js routes
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
