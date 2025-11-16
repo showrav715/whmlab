@@ -9,6 +9,8 @@ class TenantSubscription extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql'; // Always use central database
+
     protected $fillable = [
         'tenant_id',
         'subscription_plan_id',
@@ -16,7 +18,9 @@ class TenantSubscription extends Model
         'started_at',
         'expires_at',
         'price_paid',
-        'plan_features'
+        'plan_features',
+        'payment_id',
+        'receipt_id'
     ];
 
     protected $casts = [

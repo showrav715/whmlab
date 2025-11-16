@@ -9,6 +9,7 @@ class Admin extends Authenticatable
 {
     use GlobalStatus;
 
+  
     /**
      * The attributes that should be hidden for arrays.
      *

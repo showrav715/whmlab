@@ -12,6 +12,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, UserNotify;
 
+    // User model should use tenant database when tenancy is initialized
+
     /**
      * The attributes that should be hidden for arrays.
      *

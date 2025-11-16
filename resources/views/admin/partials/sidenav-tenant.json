@@ -26,6 +26,26 @@
         "route_name": "admin.dashboard",
         "menu_active": "admin.dashboard"
     },
+    "my_subscription": {
+        "keyword": [
+            "My Subscription",
+            "Subscription",
+            "Plan",
+            "Billing",
+            "Renew",
+            "Payment",
+            "Subscription Plan",
+            "Plan Renewal",
+            "Subscription Management",
+            "Billing Management",
+            "Plan Management",
+            "My Plan"
+        ],
+        "title": "My Subscription",
+        "icon": "las la-crown",
+        "route_name": "admin.subscription.index",
+        "menu_active": "admin.subscription*"
+    },
     "manage_staff": {
         "title": "Manage Staff",
         "icon": "las la-user-friends",

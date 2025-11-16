@@ -29,6 +29,7 @@ class AdminController extends Controller
     
     public function dashboard()
     {
+  
         $pageTitle = 'Dashboard';
         $isTenant = isTenant();
 

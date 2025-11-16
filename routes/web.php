@@ -6,6 +6,29 @@ Route::get('/clear', function(){
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
 });
 
+Route::get('/test-db', function() {
+    try {
+        // Check current database connection
+        $connection = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+        $user = auth()->user();
+        
+        return response()->json([
+            'current_database' => $connection,
+            'tenant_id' => tenant('id'),
+            'tenant_domain' => tenant('domain'),
+            'user_authenticated' => !!$user,
+            'user_id' => $user ? $user->id : null,
+            'user_email' => $user ? $user->email : null,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'current_database' => \Illuminate\Support\Facades\DB::connection()->getDatabaseName(),
+            'tenant_id' => tenant('id'),
+        ]);
+    }
+});
+
 
 Route::get('cron', 'CronController@cron')->name('cron');
 

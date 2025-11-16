@@ -240,6 +240,28 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('send-email', 'sendEmail')->name('send.email');
     });
 
+    Route::name('gateway.')->prefix('gateway')->group(function () {
+            // Automatic Gateway
+            Route::controller('AutomaticGatewayController')->prefix('automatic')->name('automatic.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('edit/{alias}', 'edit')->name('edit');
+                Route::post('update/{code}', 'update')->name('update');
+                Route::post('remove/{id}', 'remove')->name('remove');
+                Route::post('status/{id}', 'status')->name('status');
+            });
+
+
+            // Manual Methods
+            Route::controller('ManualGatewayController')->prefix('manual')->name('manual.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('new', 'create')->name('create');
+                Route::post('new', 'store')->name('store');
+                Route::get('edit/{alias}', 'edit')->name('edit');
+                Route::post('update/{id}', 'update')->name('update');
+                Route::post('status/{id}', 'status')->name('status');
+            });
+        });
+
 
 
     Route::middleware('superadmin')->group(function () {
@@ -283,27 +305,7 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
             Route::post('add/new', 'addNew')->name('add.new');
         });
         // Deposit Gateway
-        Route::name('gateway.')->prefix('gateway')->group(function () {
-            // Automatic Gateway
-            Route::controller('AutomaticGatewayController')->prefix('automatic')->name('automatic.')->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('edit/{alias}', 'edit')->name('edit');
-                Route::post('update/{code}', 'update')->name('update');
-                Route::post('remove/{id}', 'remove')->name('remove');
-                Route::post('status/{id}', 'status')->name('status');
-            });
-
-
-            // Manual Methods
-            Route::controller('ManualGatewayController')->prefix('manual')->name('manual.')->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('new', 'create')->name('create');
-                Route::post('new', 'store')->name('store');
-                Route::get('edit/{alias}', 'edit')->name('edit');
-                Route::post('update/{id}', 'update')->name('update');
-                Route::post('status/{id}', 'status')->name('status');
-            });
-        });
+        
 
         // DEPOSIT SYSTEM
         Route::controller('DepositController')->prefix('payment')->name('deposit.')->group(function () {
@@ -511,6 +513,15 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('status/{id}', 'status')->name('status');
     });
 
+     // Tenant Subscription Management Routes (within admin namespace)
+    Route::controller('\App\Http\Controllers\Tenant\TenantSubscriptionController')->prefix('tenant-subscriptions')->name('subscription.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('renew/{planId}', 'renew')->name('renew');
+        Route::post('process-payment', 'processPayment')->name('process.payment');
+        Route::post('payment-success', 'paymentSuccess')->name('payment.success');
+        Route::get('success', 'success')->name('success');
+    });
+
 
     //System Information
     Route::controller('SystemController')->name('system.')->prefix('system')->group(function () {
@@ -522,6 +533,8 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('system-update', 'systemUpdateProcess')->name('update.process');
         Route::get('system-update/log', 'systemUpdateLog')->name('update.log');
     });
+
+
 
     // System Performance Monitor (cPanel optimized)
     Route::controller('SystemPerformanceController')->name('performance.')->prefix('system/performance')->group(function () {
@@ -566,4 +579,6 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
             Route::post('manage-seo/{id}', 'manageSeoStore');
         });
     });
+
+   
 });
