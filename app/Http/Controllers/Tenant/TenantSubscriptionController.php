@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Gateway;
 use App\Models\SubscriptionPlan;
 use App\Models\TenantSubscription;
 use App\Models\Tenant;
@@ -16,7 +17,6 @@ class TenantSubscriptionController extends Controller
 {
     public function __construct()
     {
-        // Only ensure admin authentication
         $this->middleware('auth:admin');
     }
 
@@ -96,6 +96,7 @@ class TenantSubscriptionController extends Controller
      */
     public function processPayment(Request $request)
     {
+     
         $request->validate([
             'plan_id' => 'required|integer',
             'payment_method' => 'required|in:razorpay'
@@ -120,14 +121,15 @@ class TenantSubscriptionController extends Controller
             
             // Create Razorpay order
             $orderData = [
-                'receipt' => 'subscription_' . $currentTenant->id . '_' . time(),
-                'amount' => $subscriptionPlan->price * 100, // Amount in paisa
+                'receipt' => 'subscription_' .  '_' . time(),
+                'amount' => (int) $subscriptionPlan->price * 100, // Amount in paisa
                 'currency' => 'INR',
                 'payment_capture' => '0'
             ];
 
             $razorpayOrder = $razorpay->order->create($orderData);
 
+   
             // Store payment intent in session
             session([
                 'subscription_payment' => [
@@ -139,17 +141,22 @@ class TenantSubscriptionController extends Controller
                 ]
             ]);
 
+         
+             $gateway = Gateway::where('alias','Razorpay')->first();
+        $keys = json_decode($gateway->gateway_parameters);
+        $apiKey = $keys->key_id->value;
+
             return response()->json([
                 'success' => true,
                 'order_id' => $razorpayOrder->id,
                 'amount' => $subscriptionPlan->price * 100,
                 'currency' => 'INR',
-                'key' => config('services.razorpay.key'),
+                'key' => $apiKey,
                 'name' => 'Subscription Renewal',
                 'description' => $subscriptionPlan->name . ' Plan Renewal',
                 'prefill' => [
-                    'name' => Auth::user()->firstname . ' ' . Auth::user()->lastname,
-                    'email' => Auth::user()->email,
+                    'name' => Auth::guard('admin')->user()->username,
+                    'email' => Auth::guard('admin')->user()->email,
                 ]
             ]);
 
@@ -255,9 +262,17 @@ class TenantSubscriptionController extends Controller
      */
     private function initializeRazorpay()
     {
+        $gateway = Gateway::where('alias','Razorpay')->first();
+        $keys = json_decode($gateway->gateway_parameters);
+       // dd($keys);
+// gateway_parameter
+
+        //  API request and response for creating an order
+        $apiKey = $keys->key_id->value;
+        $apiSecret = $keys->key_secret->value;
         return new Api(
-            config('services.razorpay.key'),
-            config('services.razorpay.secret')
+            $apiKey,
+            $apiSecret
         );
     }
 
