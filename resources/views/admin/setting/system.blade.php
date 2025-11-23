@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 @section('panel')
     <div class="row">
-        <div class="col-lg-8 col-md-12 mb-30">
+        <div class="col-lg-12 col-md-12 mb-30">
             <div class="card">
                 <div class="card-body">
                     <div class="row">
@@ -19,6 +19,7 @@
                 <div class="col-12">
                     <div class="emptyArea"></div>
                 </div>
+                
                 @foreach ($settings as $key => $setting)
                     @php
                         $params = null;
@@ -46,7 +47,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-12 mb-30">
+        {{-- <div class="col-lg-4 col-md-12 mb-30">
             <div class="card bg--dark setupWrapper">
                 <div class="card-header d-flex justify-content-between flex-wrap align-items-center">
                     <h5 class="text--white">@lang('Setup')</h5>
@@ -136,7 +137,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 
 @include('admin.partials.cron_modal')
