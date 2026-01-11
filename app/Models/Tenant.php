@@ -12,6 +12,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains;
 
+    protected $connection = 'mysql'; // Always use central database
+
     protected $fillable = [
         'id',
         'data',
@@ -30,7 +32,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $tenant->save();
         
         // Update data using raw query to bypass model issues
-        \Illuminate\Support\Facades\DB::table('tenants')
+        \Illuminate\Support\Facades\DB::connection('mysql')->table('tenants')
             ->where('id', $id)
             ->update(['data' => json_encode($data)]);
             
@@ -72,8 +74,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function getSetting(string $key, $default = null)
     {
-        // Get data directly from database to bypass model issues
-        $rawData = \Illuminate\Support\Facades\DB::table('tenants')
+        // Get data directly from central database to bypass model issues
+        $rawData = \Illuminate\Support\Facades\DB::connection('mysql')
+            ->table('tenants')
             ->where('id', $this->id)
             ->first();
             
@@ -92,7 +95,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         try {
             // Get current data from database
-            $rawData = \Illuminate\Support\Facades\DB::table('tenants')
+            $rawData = \Illuminate\Support\Facades\DB::connection('mysql')->table('tenants')
                 ->where('id', $this->id)
                 ->first();
                 
@@ -105,7 +108,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             data_set($data, $key, $value);
             
             // Update in database
-            \Illuminate\Support\Facades\DB::table('tenants')
+            \Illuminate\Support\Facades\DB::connection('mysql')->table('tenants')
                 ->where('id', $this->id)
                 ->update(['data' => json_encode($data)]);
                 

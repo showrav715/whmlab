@@ -88,7 +88,12 @@ class GeneralSettingController extends Controller
 
     public function systemSetting(){
         $pageTitle = 'System Settings';
-        $settings = json_decode(file_get_contents(resource_path('views/admin/setting/settings.json')));
+        if(isTenant()){
+            $settings = json_decode(file_get_contents(resource_path('views/admin/setting/owner-setting.json')));
+        }else{
+            $settings = json_decode(file_get_contents(resource_path('views/admin/setting/settings.json')));
+        }
+
         $completed = $this->completed();
         return view('admin.setting.system', compact('pageTitle','settings', 'completed'));
     }

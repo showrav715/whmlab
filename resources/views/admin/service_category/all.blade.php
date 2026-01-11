@@ -276,7 +276,7 @@
                 @permit('admin.check.slug')
                     $.ajax({
                         type:'POST',
-                        url:'{{ route("admin.check.slug") }}',
+                        url:'',
                         data: {
                             'input': input,
                             'id': id,

@@ -93,28 +93,13 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('{plan}/status', 'status')->name('status');
     });
 
-    //Service
-    Route::controller('ServiceController')->group(function () {
-        Route::get('hosting/details/{id}', 'hostingDetails')->name('order.hosting.details');
-        Route::post('hosting/update/', 'hostingUpdate')->name('order.hosting.update');
-        Route::get('change/order/hosting/product/{hostingId}/{productId}', 'ServiceController@changeHostingProduct')->name('change.order.hosting.product');
-
-        Route::get('domain/details/{id}', 'domainDetails')->name('order.domain.details');
-        Route::post('domain/update', 'domainUpdate')->name('order.domain.update');
-    });
 
 
 
 
 
-    //Service Cancel Request
-    Route::controller('CancelRequestController')->group(function () {
-        Route::get('cancel/requests', 'allRequests')->name('cancel.requests');
-        Route::get('cancel/request/pending', 'pending')->name('cancel.request.pending');
-        Route::get('cancel/request/completed', 'completed')->name('cancel.request.completed');
-        Route::post('cancel/request', 'cancel')->name('cancel.request');
-        Route::post('cancel/request/delete', 'delete')->name('cancel.request.delete');
-    });
+
+
 
     Route::controller('StaffController')->prefix('staff')->name('staff.')->group(function () {
         Route::get('', 'index')->name('index');
@@ -130,22 +115,7 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('save/{id?}', 'save')->name('save');
     });
 
-    //Domain Setup / Tld
-    Route::controller('TldController')->group(function () {
-        Route::get('all/tld', 'all')->name('tld');
-        Route::post('add/tld', 'add')->name('tld.add');
-        Route::post('update/tld', 'update')->name('tld.update');
-        Route::post('update/tld/pricing', 'updatePricing')->name('tld.update.pricing');
-        Route::post('tld/status/{id}', 'status')->name('tld.status');
-    });
 
-    //Domain Register
-    Route::controller('DomainRegisterController')->group(function () {
-        Route::get('domain/registers', 'all')->name('register.domain');
-        Route::post('domain/register/update', 'update')->name('register.domain.update');
-        Route::post('auto/domain/register', 'autoRegister')->name('register.domain.auto');
-        Route::post('domain/register/status/{id}', 'status')->name('register.domain.status');
-    });
 
     //Configuration
     Route::controller('ConfigurableController')->group(function () {
@@ -177,58 +147,9 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::get('domain/contact/details/{id}', 'domainContact')->name('order.domain.contact');
     });
 
-    //Product
-    Route::controller('ProductController')->group(function () {
-        Route::get('products', 'products')->name('products');
-        Route::get('add/product', 'addProductPage')->name('product.add.page');
-        Route::post('add/product', 'addProduct')->name('product.add');
-        Route::get('edit/product/{id}', 'editProductPage')->name('product.update.page');
-        Route::post('update/product', 'updateProduct')->name('product.update');
-        Route::post('product/status/{id}', 'status')->name('product.status');
 
-        Route::post('get/server/package', 'getServerPackage')->name('get.server.package');
-    });
 
-    //Service Category
-    Route::controller('ServiceCategoryController')->group(function () {
-        Route::get('categories', 'all')->name('service.category');
-        Route::post('add/category', 'add')->name('service.category.add');
-        Route::post('update/category', 'update')->name('service.category.update');
-        Route::post('status/{id}', 'status')->name('service.category.status');
-    });
 
-    //Server
-    Route::controller('ServerController')->group(function () {
-        Route::get('groups/server', 'groupsServer')->name('groups.server');
-        Route::post('add/group/server', 'addGroupServer')->name('group.server.add');
-        Route::post('update/group/server', 'updateGroupServer')->name('group.server.update');
-        Route::post('group/server/status/{id}', 'groupServerStatus')->name('group.server.status');
-
-        Route::get('servers', 'servers')->name('servers');
-        Route::get('add/server', 'addServerPage')->name('server.add.page');
-        Route::post('add/server', 'addServer')->name('server.add');
-        Route::get('edit/server/{id}', 'editServerPage')->name('server.edit.page');
-        Route::post('update/server', 'updateServer')->name('server.update');
-        Route::get('server/login/{id}', 'serverLogin')->name('server.login');
-        Route::post('server/status/{id}', 'serverStatus')->name('server.status');
-
-        Route::post('server/test/connection', 'testConnection')->name('server.test.connection');
-    });
-
-    // Billing Setting
-    Route::controller('BillingSettingController')->group(function () {
-        Route::get('billing-setting', 'index')->name('billing.setting');
-        Route::post('billing-setting', 'update')->name('billing.setting.update');
-        Route::post('update/advance/billing/setting', 'advanceBillingSetting')->name('billing.setting.advanced');
-    });
-
-    //Coupon
-    Route::controller('CouponController')->group(function () {
-        Route::get('coupons', 'coupons')->name('coupons');
-        Route::post('add/coupon', 'add')->name('coupon.add');
-        Route::post('update/coupon', 'update')->name('coupon.update');
-        Route::post('coupon/status/{id}', 'status')->name('coupon.status');
-    });
 
 
 
@@ -240,9 +161,128 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('send-email', 'sendEmail')->name('send.email');
     });
 
+    Route::name('gateway.')->prefix('gateway')->group(function () {
+        // Automatic Gateway
+        Route::controller('AutomaticGatewayController')->prefix('automatic')->name('automatic.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('edit/{alias}', 'edit')->name('edit');
+            Route::post('update/{code}', 'update')->name('update');
+            Route::post('remove/{id}', 'remove')->name('remove');
+            Route::post('status/{id}', 'status')->name('status');
+        });
+
+
+        // Manual Methods
+        Route::controller('ManualGatewayController')->prefix('manual')->name('manual.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('new', 'create')->name('create');
+            Route::post('new', 'store')->name('store');
+            Route::get('edit/{alias}', 'edit')->name('edit');
+            Route::post('update/{id}', 'update')->name('update');
+            Route::post('status/{id}', 'status')->name('status');
+        });
+    });
+
 
 
     Route::middleware('superadmin')->group(function () {
+
+        //Service Cancel Request
+        Route::controller('CancelRequestController')->group(function () {
+            Route::get('cancel/requests', 'allRequests')->name('cancel.requests');
+            Route::get('cancel/request/pending', 'pending')->name('cancel.request.pending');
+            Route::get('cancel/request/completed', 'completed')->name('cancel.request.completed');
+            Route::post('cancel/request', 'cancel')->name('cancel.request');
+            Route::post('cancel/request/delete', 'delete')->name('cancel.request.delete');
+        });
+
+        //KYC setting
+        Route::controller('KycController')->group(function () {
+            Route::get('kyc-setting', 'setting')->name('kyc.setting');
+            Route::post('kyc-setting', 'settingUpdate');
+        });
+
+        //Product
+        Route::controller('ProductController')->group(function () {
+            Route::get('products', 'products')->name('products');
+            Route::get('add/product', 'addProductPage')->name('product.add.page');
+            Route::post('add/product', 'addProduct')->name('product.add');
+            Route::get('edit/product/{id}', 'editProductPage')->name('product.update.page');
+            Route::post('update/product', 'updateProduct')->name('product.update');
+            Route::post('product/status/{id}', 'status')->name('product.status');
+
+            Route::post('get/server/package', 'getServerPackage')->name('get.server.package');
+        });
+
+
+        //Domain Setup / Tld
+        Route::controller('TldController')->group(function () {
+            Route::get('all/tld', 'all')->name('tld');
+            Route::post('add/tld', 'add')->name('tld.add');
+            Route::post('update/tld', 'update')->name('tld.update');
+            Route::post('update/tld/pricing', 'updatePricing')->name('tld.update.pricing');
+            Route::post('tld/status/{id}', 'status')->name('tld.status');
+        });
+
+        //Domain Register
+        Route::controller('DomainRegisterController')->group(function () {
+            Route::get('domain/registers', 'all')->name('register.domain');
+            Route::post('domain/register/update', 'update')->name('register.domain.update');
+            Route::post('auto/domain/register', 'autoRegister')->name('register.domain.auto');
+            Route::post('domain/register/status/{id}', 'status')->name('register.domain.status');
+        });
+
+        //Service Category
+        Route::controller('ServiceCategoryController')->group(function () {
+            Route::get('categories', 'all')->name('service.category');
+            Route::post('add/category', 'add')->name('service.category.add');
+            Route::post('update/category', 'update')->name('service.category.update');
+            Route::post('status/{id}', 'status')->name('service.category.status');
+        });
+
+        //Server
+        Route::controller('ServerController')->group(function () {
+            Route::get('groups/server', 'groupsServer')->name('groups.server');
+            Route::post('add/group/server', 'addGroupServer')->name('group.server.add');
+            Route::post('update/group/server', 'updateGroupServer')->name('group.server.update');
+            Route::post('group/server/status/{id}', 'groupServerStatus')->name('group.server.status');
+
+            Route::get('servers', 'servers')->name('servers');
+            Route::get('add/server', 'addServerPage')->name('server.add.page');
+            Route::post('add/server', 'addServer')->name('server.add');
+            Route::get('edit/server/{id}', 'editServerPage')->name('server.edit.page');
+            Route::post('update/server', 'updateServer')->name('server.update');
+            Route::get('server/login/{id}', 'serverLogin')->name('server.login');
+            Route::post('server/status/{id}', 'serverStatus')->name('server.status');
+
+            Route::post('server/test/connection', 'testConnection')->name('server.test.connection');
+        });
+
+        // Billing Setting
+        Route::controller('BillingSettingController')->group(function () {
+            Route::get('billing-setting', 'index')->name('billing.setting');
+            Route::post('billing-setting', 'update')->name('billing.setting.update');
+            Route::post('update/advance/billing/setting', 'advanceBillingSetting')->name('billing.setting.advanced');
+        });
+
+        //Coupon
+        Route::controller('CouponController')->group(function () {
+            Route::get('coupons', 'coupons')->name('coupons');
+            Route::post('add/coupon', 'add')->name('coupon.add');
+            Route::post('update/coupon', 'update')->name('coupon.update');
+            Route::post('coupon/status/{id}', 'status')->name('coupon.status');
+        });
+
+        //Service
+        Route::controller('ServiceController')->group(function () {
+            Route::get('hosting/details/{id}', 'hostingDetails')->name('order.hosting.details');
+            Route::post('hosting/update/', 'hostingUpdate')->name('order.hosting.update');
+            Route::get('change/order/hosting/product/{hostingId}/{productId}', 'ServiceController@changeHostingProduct')->name('change.order.hosting.product');
+
+            Route::get('domain/details/{id}', 'domainDetails')->name('order.domain.details');
+            Route::post('domain/update', 'domainUpdate')->name('order.domain.update');
+        });
+
         // Users Manager
         Route::controller('ManageUsersController')->name('users.')->prefix('clients')->group(function () {
             Route::get('/', 'allUsers')->name('all');
@@ -283,27 +323,7 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
             Route::post('add/new', 'addNew')->name('add.new');
         });
         // Deposit Gateway
-        Route::name('gateway.')->prefix('gateway')->group(function () {
-            // Automatic Gateway
-            Route::controller('AutomaticGatewayController')->prefix('automatic')->name('automatic.')->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('edit/{alias}', 'edit')->name('edit');
-                Route::post('update/{code}', 'update')->name('update');
-                Route::post('remove/{id}', 'remove')->name('remove');
-                Route::post('status/{id}', 'status')->name('status');
-            });
 
-
-            // Manual Methods
-            Route::controller('ManualGatewayController')->prefix('manual')->name('manual.')->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('new', 'create')->name('create');
-                Route::post('new', 'store')->name('store');
-                Route::get('edit/{alias}', 'edit')->name('edit');
-                Route::post('update/{id}', 'update')->name('update');
-                Route::post('status/{id}', 'status')->name('status');
-            });
-        });
 
         // DEPOSIT SYSTEM
         Route::controller('DepositController')->prefix('payment')->name('deposit.')->group(function () {
@@ -466,11 +486,7 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
     });
 
 
-    //KYC setting
-    Route::controller('KycController')->group(function () {
-        Route::get('kyc-setting', 'setting')->name('kyc.setting');
-        Route::post('kyc-setting', 'settingUpdate');
-    });
+
 
     //Notification Setting
     Route::name('setting.notification.')->controller('NotificationController')->prefix('notification')->group(function () {
@@ -511,6 +527,15 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('status/{id}', 'status')->name('status');
     });
 
+    // Tenant Subscription Management Routes (within admin namespace)
+    Route::controller('\App\Http\Controllers\Tenant\TenantSubscriptionController')->prefix('tenant-subscriptions')->name('subscription.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('renew/{planId}', 'renew')->name('renew');
+        Route::post('process-payment', 'processPayment')->name('process.payment');
+        Route::post('payment-success', 'paymentSuccess')->name('payment.success');
+        Route::get('success', 'success')->name('success');
+    });
+
 
     //System Information
     Route::controller('SystemController')->name('system.')->prefix('system')->group(function () {
@@ -522,6 +547,8 @@ Route::middleware(['admin', 'admin.permission'])->group(function () {
         Route::post('system-update', 'systemUpdateProcess')->name('update.process');
         Route::get('system-update/log', 'systemUpdateLog')->name('update.log');
     });
+
+
 
     // System Performance Monitor (cPanel optimized)
     Route::controller('SystemPerformanceController')->name('performance.')->prefix('system/performance')->group(function () {

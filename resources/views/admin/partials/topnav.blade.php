@@ -45,7 +45,8 @@
                 </button>
             </li>
 
-            @permit('admin.domains')
+            @if (!isTenant())
+                 @permit('admin.domains')
                 <li>
                     <button type="button" class="primary--layer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@lang('Domains')">
                         <a href="{{ route('admin.domains') }}" class="primary--layer">
@@ -107,6 +108,8 @@
                     </div>
                 </li>
             @endpermit
+            @endif
+           
             @permit('admin.system.setting')
                 <li>
                     <button type="button" class="primary--layer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@lang('System Setting')">

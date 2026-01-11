@@ -122,7 +122,7 @@ Route::middleware([
     });
 
     // Support Ticket Routes
-        Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
+    Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
         Route::get('/', 'supportTicket')->name('index');
         Route::get('new', 'openSupportTicket')->name('open');
         Route::post('create', 'storeSupportTicket')->name('store');
@@ -130,5 +130,14 @@ Route::middleware([
         Route::post('reply/{id}', 'replyTicket')->name('reply');
         Route::post('close/{id}', 'closeTicket')->name('close');
         Route::get('download/{attachment_id}', 'ticketDownload')->name('download');
+    });
+
+    // Tenant Subscription Renewal Routes
+    Route::controller('Tenant\TenantSubscriptionController')->prefix('subscription')->name('tenant.subscription.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('renew/{planId}', 'renew')->name('renew');
+        Route::post('process-payment', 'processPayment')->name('process.payment');
+        Route::post('payment-success', 'paymentSuccess')->name('payment.success');
+        Route::get('success', 'success')->name('success');
     });
 });
