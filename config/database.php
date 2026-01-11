@@ -56,6 +56,14 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // Performance optimizations for external database
+                PDO::ATTR_PERSISTENT => true, // Use persistent connections
+                PDO::ATTR_TIMEOUT => 30, // Connection timeout 30 seconds
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true, // Buffer queries
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))",
+                PDO::ATTR_EMULATE_PREPARES => false, // Use native prepared statements
+                PDO::MYSQL_ATTR_MULTI_STATEMENTS => false, // Disable multi statements for security
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Throw exceptions on error
             ]) : [],
         ],
 
@@ -76,6 +84,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_PERSISTENT => true,
             ]) : [],
         ],
 

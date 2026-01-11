@@ -45,239 +45,46 @@
             }
         ]
     },
-    "manage_users": {
-        "title": "Manage Clients",
-        "icon": "las la-users",
-        "counters": ["bannedUsersCount", "emailUnverifiedUsersCount", "mobileUnverifiedUsersCount", "kycUnverifiedUsersCount", "kycPendingUsersCount"],
-        "menu_active": "admin.users*",
-        "submenu": [{
-                "keyword": ["active clients", "Manage clients", "Client management", "Client control", "client status", "Client activity", "Client analytics"],
-                "title": "Active Clients",
-                "route_name": "admin.users.active",
-                "menu_active": "admin.users.active"
-            },
-            {
-                "keyword": ["banned clients", "Manage clients", "Client management", "Account bans", "Client activity"],
-                "title": "Banned Clients",
-                "route_name": "admin.users.banned",
-                "menu_active": "admin.users.banned",
-                "counter": "bannedUsersCount"
-            },
-            {
-                "keyword": ["email unverified clients", "Manage clients", "User verification", "User authentication", "Client management"],
-                "title": "Email Unverified",
-                "route_name": "admin.users.email.unverified",
-                "menu_active": "admin.users.email.unverified",
-                "counter": "emailUnverifiedUsersCount"
-            },
-            {
-                "keyword": ["mobile unverified clients", "Manage clients", "User verification", "User authentication", "Client management"],
-                "title": "Mobile Unverified",
-                "route_name": "admin.users.mobile.unverified",
-                "menu_active": "admin.users.mobile.unverified",
-                "counter": "mobileUnverifiedUsersCount"
-            },
-            {
-                "keyword": ["kyc unverified clients", "Manage clients", "User verification", "User authentication", "Client management"],
-                "title": "KYC Unverified",
-                "route_name": "admin.users.kyc.unverified",
-                "menu_active": "admin.users.kyc.unverified",
-                "counter": "kycUnverifiedUsersCount"
-            },
-            {
-                "keyword": ["kyc pending clients", "Manage clients", "User verification", "User authentication", "Client management"],
-                "title": "KYC Pending",
-                "route_name": "admin.users.kyc.pending",
-                "menu_active": "admin.users.kyc.pending",
-                "counter": "kycPendingUsersCount"
-            },
-            {
-                "keyword": ["with balance clients", "Manage clients", "Client management", "Client activity", "Account management"],
-                "title": "With Balance",
-                "route_name": "admin.users.with.balance",
-                "menu_active": "admin.users.with.balance"
-            },
-            {
-                "keyword": ["all users clients", "Manage clients", "Client management", "Client control", "Client activity", "Client analytics"],
-                "title": "All Clients",
-                "route_name": "admin.users.all",
-                "menu_active": "admin.users.all"
-            },
-            {
-                "keyword": ["send notification clients", "Manage clients", "User notifications", "Client management", "Client activity"],
-                "title": "Send Notification",
-                "route_name": "admin.users.notification.all",
-                "menu_active": "admin.users.notification.all"
-            }
-        ]
+   
+    "tenant_management": {
+        "keyword": [
+            "Tenant",
+            "Multi-tenancy", 
+            "Subdomain",
+            "Custom domain", 
+            "Tenant management",
+            "Tenant control",
+            "Multi-tenant",
+            "Site management",
+            "Domain management",
+            "Tenant database"
+        ],
+        "title": "Tenant Management",
+        "icon": "las la-globe",
+        "route_name": "admin.tenants.index",
+        "menu_active": "admin.tenants*"
     },
-    "payments": {
-        "title": "Payments",
-        "icon": "las la-file-invoice-dollar",
-        "counters": ["pendingDepositsCount"],
-        "menu_active": "admin.deposit*",
-        "submenu": [{
-                "keyword": ["Pending Payments", "Payments", "Payment management", "Payment control", "Payment status", "Payment activity"],
-                "title": "Pending Payments",
-                "route_name": "admin.deposit.pending",
-                "menu_active": "admin.deposit.pending",
-                "counter": "pendingDepositsCount",
-                "params":{
-                    "user_id":""
-                }
-            },
-            {
-                "keyword": ["Approved Payments", "Payments", "Payment management", "Payment activity"],
-                "title": "Approved Payments",
-                "route_name": "admin.deposit.approved",
-                "menu_active": "admin.deposit.approved",
-                "params":{
-                    "user_id":""
-                }
-            },
-            {
-                "keyword": ["Successful Payments", "Payments", "Payment management", "Payment activity"],
-                "title": "Successful Payments",
-                "route_name": "admin.deposit.successful",
-                "menu_active": "admin.deposit.successful",
-                "params":{
-                    "user_id":""
-                }
-            },
-            {
-                "keyword": ["Rejected Payments", "Payments", "Payment management", "Payment activity"],
-                "title": "Rejected Payments",
-                "route_name": "admin.deposit.rejected",
-                "menu_active": "admin.deposit.rejected",
-                "params":{
-                    "user_id":""
-                }
-            },
-            {
-                "keyword": ["Initiated Payments", "Payments", "Payment management", "Payment activity"],
-                "title": "Initiated Payments",
-                "route_name": "admin.deposit.initiated",
-                "menu_active": "admin.deposit.initiated",
-                "params":{
-                    "user_id":""
-                }
-            },
-            {
-                "keyword": ["All Payments", "Payments", "Payment management", "Payment control", "Payment activity"],
-                "title": "All Payments",
-                "route_name": "admin.deposit.list",
-                "menu_active": "admin.deposit.list",
-                "params":{
-                    "user_id":""
-                }
-            }
-        ]
+    "subscription_management": {
+        "keyword": [
+            "Subscription",
+            "Plan",
+            "Billing",
+            "Subscription plan",
+            "Plan management",
+            "Billing cycle",
+            "Monthly",
+            "Yearly",
+            "Pricing",
+            "Subscription management",
+            "Plan control",
+            "Billing management"
+        ],
+        "title": "Subscription Plans",
+        "icon": "las la-credit-card",
+        "route_name": "admin.subscription.plans.index",
+        "menu_active": "admin.subscription.plans*"
     },
-    "orders": {
-        "title": "Orders",
-        "icon": "la la-shopping-bag",
-        "counters": ["pendingOrderCount"],
-        "menu_active": "admin.orders*",
-        "submenu": [
-            {
-                "keyword": ["Active Orders", "Orders", "Order management", "Order control", "Order activity"],
-                "title": "Active Orders",
-                "route_name": "admin.orders.active",
-                "menu_active": "admin.orders.active"
-            },
-            {
-                "keyword": ["Pending Orders", "Orders", "Order management", "Order control", "Order activity"],
-                "title": "Pending Orders",
-                "route_name": "admin.orders.pending",
-                "menu_active": "admin.orders.pending",
-                "counter": "pendingOrderCount"
-            },
-            {
-                "keyword": ["Cancelled Orders", "Orders", "Order management", "Order control", "Order activity"],
-                "title": "Cancelled Orders",
-                "route_name": "admin.orders.cancelled",
-                "menu_active": "admin.orders.cancelled"
-            },
-            {
-                "keyword": ["All Orders", "Orders", "Order management", "Order control", "Order activity"],
-                "title": "All Orders",
-                "route_name": "admin.orders",
-                "menu_active": "admin.orders"
-            }
-        ]
-    },
-    "invoices": {
-        "title": "Invoices",
-        "icon": "la la-file-invoice",
-        "counters": ["unpaidInvoiceCount"],
-        "menu_active": "admin.invoices*",
-        "submenu": [
-            {
-                "keyword": ["Paid Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "Paid Invoices",
-                "route_name": "admin.invoices.paid",
-                "menu_active": "admin.invoices.paid"
-            },
-            {
-                "keyword": ["Unpaid Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "Unpaid Orders",
-                "route_name": "admin.invoices.unpaid",
-                "menu_active": "admin.invoices.unpaid",
-                "counter": "unpaidInvoiceCount"
-            },
-            {
-                "keyword": ["Payment Pending Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "Payment Pending",
-                "route_name": "admin.invoices.payment.pending",
-                "menu_active": "admin.invoices.payment.pending"
-            },
-            {
-                "keyword": ["Cancelled Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "Cancelled Invoices",
-                "route_name": "admin.invoices.cancelled",
-                "menu_active": "admin.invoices.cancelled"
-            },
-            {
-                "keyword": ["Refunded Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "Refunded Invoices",
-                "route_name": "admin.invoices.refunded",
-                "menu_active": "admin.invoices.refunded"
-            },
-            {
-                "keyword": ["All Invoices", "Invoices", "Invoice management", "Invoice control", "Invoice activity"],
-                "title": "All Invoices",
-                "route_name": "admin.invoices",
-                "menu_active": "admin.invoices"
-            }
-        ]
-    },
-    "cancellation": {
-        "title": "Cancellation",
-        "icon": "la la-ban",
-        "counters": ["pendingCancelRequestCount"],
-        "menu_active": "admin.cancel.request*",
-        "submenu": [
-            {
-                "keyword": ["Pending Requests", "Pending Cancellation Requests", "Cancellation", "Cancellation management", "Cancellation control", "Cancellation activity"],
-                "title": "Pending Requests",
-                "route_name": "admin.cancel.request.pending",
-                "menu_active": "admin.cancel.request.pending",
-                "counter": "pendingCancelRequestCount"
-            },
-            {
-                "keyword": ["Completed Requests", "Completed Cancellation Requests", "Cancellation", "Cancellation management", "Cancellation control", "Cancellation activity"],
-                "title": "Completed Requests",
-                "route_name": "admin.cancel.request.completed",
-                "menu_active": "admin.cancel.request.completed"
-            },
-            {
-                "keyword": ["All Requests", "All Cancellation Requests", "Cancellation", "Cancellation management", "Cancellation control", "Cancellation activity"],
-                "title": "All Requests",
-                "route_name": "admin.cancel.requests",
-                "menu_active": "admin.cancel.requests"
-            }
-        ] 
-    },
+   
     "automation_errors": {
         "keyword": ["Automation Errors", "Automation", "Errors"],
         "title": "Automation Errors",
@@ -410,7 +217,8 @@
             "admin.extensions.index",
             "admin.language.manage",
             "admin.currency*",
-            "admin.request.report"    
+            "admin.request.report" 
+               
         ]
     },
     "extra": {
@@ -436,6 +244,12 @@
                 "title": "Cache",
                 "route_name": "admin.system.optimize",
                 "menu_active": "admin.system.optimize"
+            },
+            {
+                "keyword": ["Performance", "Database Performance", "External Database", "System Monitor", "Performance Monitor", "Database Optimization", "cPanel Performance", "DB Performance"],
+                "title": "Performance Monitor",
+                "route_name": "admin.performance.dashboard",
+                "menu_active": "admin.performance*"
             },
             {
                 "keyword": ["Update", "System", "Update management", "System update", "Software updates","version update","upgrade","latest version"],

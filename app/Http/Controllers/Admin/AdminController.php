@@ -12,12 +12,17 @@ use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ServiceCategory;
+use App\Models\Tenant;
+use App\Models\SubscriptionPlan;
+use App\Models\TenantSubscription;
 use App\Models\User;
 use App\Rules\FileTypeValidate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -25,34 +30,102 @@ class AdminController extends Controller
     public function dashboard()
     {
         $pageTitle = 'Dashboard';
+        $isTenant = isTenant();
 
-        // User Info
-        $widget['total_users']             = User::count();
-        $widget['verified_users']          = User::active()->count();
-        $widget['email_unverified_users']  = User::emailUnverified()->count();
-        $widget['mobile_unverified_users'] = User::mobileUnverified()->count();
+        // Add tenant management data for main site
+        $tenantData = [];
+        if ($isTenant) {
+            // Main Site - Add comprehensive tenant management statistics
+            try {
+                $tenantData['total_tenants'] = Tenant::count();
+                // Fix status check - should be 'active' string, not boolean
+                $tenantData['active_tenants'] = Tenant::where('data->status', 'active')->count();
+                $tenantData['suspended_tenants'] = Tenant::where('data->status', '!=', 'active')->count();
+                $tenantData['subscription_plans'] = SubscriptionPlan::count();
+                $tenantData['active_subscriptions'] = TenantSubscription::where('status', 'active')->count();
+                $tenantData['expired_subscriptions'] = TenantSubscription::where('status', 'expired')->count();
+                $tenantData['trial_subscriptions'] = TenantSubscription::where('status', 'trial')->count();
+                
+                // Recent tenant activities - using raw query to avoid model issues
+                $tenantData['recent_tenants'] = collect(DB::table('tenants')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get());
+                
+                // Monthly tenant growth
+                $tenantData['monthly_growth'] = Tenant::whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->count();
+                    
+                // Revenue from subscriptions
+                $tenantData['subscription_revenue'] = TenantSubscription::where('status', 'active')
+                    ->sum('price_paid') ?? 0;
+                    
+                // Most popular subscription plan
+                $popularPlan = TenantSubscription::select('subscription_plan_id', DB::raw('count(*) as total'))
+                    ->where('status', 'active')
+                    ->groupBy('subscription_plan_id')
+                    ->orderByDesc('total')
+                    ->first();
+                    
+                if ($popularPlan && $popularPlan->subscription_plan_id) {
+                    $tenantData['popular_plan'] = SubscriptionPlan::find($popularPlan->subscription_plan_id);
+                    $tenantData['popular_plan_count'] = $popularPlan->total;
+                } else {
+                    $tenantData['popular_plan'] = null;
+                    $tenantData['popular_plan_count'] = 0;
+                }
+            } catch (\Exception $e) {
+                // Fallback data in case of any database issues
+                Log::error('Dashboard tenant data error: ' . $e->getMessage());
+                $tenantData = [
+                    'total_tenants' => 0,
+                    'active_tenants' => 0,
+                    'suspended_tenants' => 0,
+                    'subscription_plans' => 0,
+                    'active_subscriptions' => 0,
+                    'expired_subscriptions' => 0,
+                    'trial_subscriptions' => 0,
+                    'recent_tenants' => collect([]),
+                    'monthly_growth' => 0,
+                    'subscription_revenue' => 0,
+                    'popular_plan' => null,
+                    'popular_plan_count' => 0
+                ];
+            }
 
-        $invoiceStatistics = Invoice::selectRaw('
-            SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as total_paid,
-            SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as total_unpaid,
-            SUM(CASE WHEN status = 3 THEN amount ELSE 0 END) as total_payment_pending,
-            SUM(CASE WHEN status = 5 THEN refund_amount ELSE 0 END) as total_refunded,
-            COUNT(CASE WHEN status = 2 THEN 0 END) as unpaid
-        ')->first(); 
+            // Main Site - Super Admin Dashboard with Tenant Management Only
+            return view('admin.dashboard-super-admin', compact('pageTitle', 'tenantData'));
+        } else {
+            // Tenant Site - Get business data for tenant operations
+            $widget['total_users']             = User::count();
+            $widget['verified_users']          = User::active()->count();
+            $widget['email_unverified_users']  = User::emailUnverified()->count();
+            $widget['mobile_unverified_users'] = User::mobileUnverified()->count();
 
-        $orderStatistics = Order::selectRaw(' 
-            SUM(after_discount) as total,
-            SUM(CASE WHEN status = 1 THEN after_discount ELSE 0 END) as total_active,
-            SUM(CASE WHEN status = 2 THEN after_discount ELSE 0 END) as total_pending,
-            SUM(CASE WHEN status = 3 THEN after_discount ELSE 0 END) as total_cancelled,
-            COUNT(CASE WHEN status = 2 THEN 0 END) as pending
-        ')->first(); 
+            $invoiceStatistics = Invoice::selectRaw('
+                SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as total_paid,
+                SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as total_unpaid,
+                SUM(CASE WHEN status = 3 THEN amount ELSE 0 END) as total_payment_pending,
+                SUM(CASE WHEN status = 5 THEN refund_amount ELSE 0 END) as total_refunded,
+                COUNT(CASE WHEN status = 2 THEN 0 END) as unpaid
+            ')->first(); 
 
-        $statistics['count_active_service'] = Hosting::active()->count();
-        $statistics['count_domain_service'] = Domain::active()->count();
-        $orderStatus = Order::status();
+            $orderStatistics = Order::selectRaw(' 
+                SUM(after_discount) as total,
+                SUM(CASE WHEN status = 1 THEN after_discount ELSE 0 END) as total_active,
+                SUM(CASE WHEN status = 2 THEN after_discount ELSE 0 END) as total_pending,
+                SUM(CASE WHEN status = 3 THEN after_discount ELSE 0 END) as total_cancelled,
+                COUNT(CASE WHEN status = 2 THEN 0 END) as pending
+            ')->first(); 
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'invoiceStatistics', 'orderStatistics', 'statistics', 'orderStatus'));
+            $statistics['count_active_service'] = Hosting::active()->count();
+            $statistics['count_domain_service'] = Domain::active()->count();
+            $orderStatus = Order::status();
+
+            // Tenant Site - Limited Dashboard 
+            return view('admin.dashboard-tenant', compact('pageTitle', 'widget', 'invoiceStatistics', 'orderStatistics', 'statistics', 'orderStatus'));
+        }
     }
 
     public function profile()

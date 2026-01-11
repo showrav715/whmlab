@@ -1,7 +1,12 @@
 @extends('admin.layouts.master')
 @section('content')
 @php
-    $sidenav = file_get_contents(resource_path('views/admin/partials/sidenav.json'));
+  
+    if (isTenant()) {
+        $sidenav = file_get_contents(resource_path('views/admin/partials/sidenav.json'));
+    } else {
+        $sidenav = file_get_contents(resource_path('views/admin/partials/sidenav-tenant.json'));
+    }
 @endphp
     <!-- page-wrapper start -->
     <div class="page-wrapper default-version">
