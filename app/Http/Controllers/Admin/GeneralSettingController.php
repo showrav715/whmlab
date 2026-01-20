@@ -189,10 +189,45 @@ class GeneralSettingController extends Controller
             'logo_dark' => ['image',new FileTypeValidate(['jpg','jpeg','png'])],
             'favicon' => ['image',new FileTypeValidate(['png'])],
         ]);
+        
+        // Get tenant-aware path for logo/favicon
+        $currentDomain = request()->getHost();
+        $tenantId = currentTenantId();
         $path = getFilePath('logoIcon');
+        $absolutePath = base_path('../' . $path);
+        
+        // Check database directly for debugging (use central connection)
+        $dbCheck = null;
+        try {
+            $centralConnection = config('tenancy.database.central_connection', 'mysql');
+            $dbCheck = \DB::connection($centralConnection)
+                ->table('tenant_domains')
+                ->where('domain', $currentDomain)
+                ->first();
+        } catch (\Exception $e) {
+            \Log::error('DB Check failed: ' . $e->getMessage());
+        }
+        
+        // Debug logging
+        \Log::info('Logo Upload Context', [
+            'current_domain' => $currentDomain,
+            'app_url' => env('APP_URL'),
+            'is_tenant' => isTenant(),
+            'tenant_id' => $tenantId,
+            'tenant_from_db' => $dbCheck ? $dbCheck->tenant_id : 'NOT FOUND',
+            'path_relative' => $path,
+            'path_absolute' => $absolutePath,
+        ]);
+        
+        // Ensure the directory exists (especially for tenant-specific folders)
+        if (!file_exists($absolutePath)) {
+            mkdir($absolutePath, 0755, true);
+            \Log::info('Created directory: ' . $absolutePath);
+        }
+        
         if ($request->hasFile('logo')) {
             try {
-                fileUploader($request->logo,$path,filename:'logo.png');
+                fileUploader($request->logo,$absolutePath,filename:'logo.png');
             } catch (\Exception $exp) {
                 $notify[] = ['error', 'Couldn\'t upload the logo'];
                 return back()->withNotify($notify);
@@ -200,7 +235,7 @@ class GeneralSettingController extends Controller
         }
         if ($request->hasFile('logo_dark')) {
             try {
-                fileUploader($request->logo_dark,$path,filename:'logo_dark.png');
+                fileUploader($request->logo_dark,$absolutePath,filename:'logo_dark.png');
             } catch (\Exception $exp) {
                 $notify[] = ['error', 'Couldn\'t upload the dark logo'];
                 return back()->withNotify($notify);
@@ -209,7 +244,7 @@ class GeneralSettingController extends Controller
 
         if ($request->hasFile('favicon')) {
             try {
-                fileUploader($request->favicon,$path,filename:'favicon.png');
+                fileUploader($request->favicon,$absolutePath,filename:'favicon.png');
             } catch (\Exception $exp) {
                 $notify[] = ['error', 'Couldn\'t upload the favicon'];
                 return back()->withNotify($notify);

@@ -65,12 +65,81 @@ function activeTemplateName() {
     return $template;
 }
 
+/**
+ * Get the site logo path
+ * Automatically uses tenant-specific path when in tenant context
+ * Falls back to central logo if tenant logo doesn't exist
+ * 
+ * @param string|null $type Logo type ('dark' for dark background)
+ * @return string Logo image path
+ */
 function siteLogo($type = null) {
     $name = $type ? "/logo_$type.png" : '/logo.png';
-    return getImage(getFilePath('logoIcon') . $name);
+    
+    // isTenant() returns TRUE for central admin, FALSE for tenant
+    if (isTenant()) {
+        // Central admin context
+        $centralPath = 'assets/images/logo_icon' . $name;
+        $absolutePath = base_path('../' . $centralPath);
+        
+        if (file_exists($absolutePath)) {
+            return asset($centralPath);
+        }
+    } else {
+        // Tenant context
+        $tenantId = currentTenantId();
+        if ($tenantId) {
+            $tenantPath = 'assets/images/logo_icon/tenant_' . $tenantId . $name;
+            $absolutePath = base_path('../' . $tenantPath);
+            
+            // Use tenant logo if exists, otherwise fallback to central
+            if (file_exists($absolutePath)) {
+                return asset($tenantPath);
+            }
+            // Fallback to central logo
+            $centralPath = 'assets/images/logo_icon' . $name;
+            return asset($centralPath);
+        }
+    }
+    
+    return asset('assets/images/default.png');
 }
+
+/**
+ * Get the site favicon path
+ * Automatically uses tenant-specific path when in tenant context
+ * Falls back to central favicon if tenant favicon doesn't exist
+ * 
+ * @return string Favicon image path
+ */
 function siteFavicon() {
-    return getImage(getFilePath('logoIcon'). '/favicon.png');
+    // isTenant() returns TRUE for central admin, FALSE for tenant
+    if (isTenant()) {
+        // Central admin context
+        $centralPath = 'assets/images/logo_icon/favicon.png';
+        $absolutePath = base_path('../' . $centralPath);
+        
+        if (file_exists($absolutePath)) {
+            return asset($centralPath);
+        }
+    } else {
+        // Tenant context
+        $tenantId = currentTenantId();
+        if ($tenantId) {
+            $tenantPath = 'assets/images/logo_icon/tenant_' . $tenantId . '/favicon.png';
+            $absolutePath = base_path('../' . $tenantPath);
+            
+            // Use tenant favicon if exists, otherwise fallback to central
+            if (file_exists($absolutePath)) {
+                return asset($tenantPath);
+            }
+            // Fallback to central favicon
+            $centralPath = 'assets/images/logo_icon/favicon.png';
+            return asset($centralPath);
+        }
+    }
+    
+    return asset('assets/images/default.png');
 }
 
 function loadReCaptcha()
@@ -347,7 +416,22 @@ function fileManager()
 
 function getFilePath($key)
 {
-    return fileManager()->$key()->path;
+    $path = fileManager()->$key()->path;
+    
+    // Special handling for logoIcon to make it tenant-aware dynamically
+    if ($key === 'logoIcon') {
+        // isTenant() returns TRUE for central admin, FALSE for tenant
+        if (!isTenant()) {
+            // We're in tenant context, append tenant folder
+            $tenantId = currentTenantId();
+            if ($tenantId) {
+                $path .= '/tenant_' . $tenantId;
+            }
+        }
+        // else: central admin, use default path
+    }
+    
+    return $path;
 }
 
 function getFileSize($key)
@@ -1142,14 +1226,111 @@ function convertPricingToUserCurrency($amount)
 }
 
 function isTenant(){
-    // get current domain name
-    $domain = request()->getHost();
-    $mainDomain = env('APP_URL');
-    if($domain == $mainDomain){
-        return true;
+    // Returns TRUE for central admin (when domain matches APP_URL)
+    // Returns FALSE for tenant site (custom domain or subdomain)
+    $host = request()->getHost();
+    $appUrl = str_replace(['http://', 'https://'], '', env('APP_URL'));
+    $appUrl = rtrim($appUrl, '/');
+    
+    if($host == $appUrl){
+        return true; // Central admin context
+    }else{
+        return false; // Tenant context
     }
+}
 
-    return false;
+/**
+ * Check if currently in tenant context and return tenant ID
+ * Returns null if in central admin context
+ */
+function currentTenantId() {
+    // If in central admin, return null
+    if (isTenant()) {
+        return null;
+    }
+    
+    // Get current domain/subdomain
+    $currentDomain = request()->getHost();
+    
+    try {
+        // First try to get from tenancy if initialized
+        if (function_exists('tenancy') && app()->bound('tenancy')) {
+            try {
+                if (tenancy()->initialized && tenant('id')) {
+                    return tenant('id');
+                }
+            } catch (\Exception $e) {
+                // Continue to database lookup
+            }
+        }
+        
+        // IMPORTANT: Use central database connection to query tenant_domains
+        // because tenant_domains table is in central database, not tenant database
+        $centralConnection = config('tenancy.database.central_connection', 'mysql');
+        
+        $tenantDomain = \DB::connection($centralConnection)
+            ->table('tenant_domains')
+            ->where('domain', $currentDomain)
+            ->first();
+        
+        if ($tenantDomain) {
+            return $tenantDomain->tenant_id;
+        }
+        
+        // If not found, log for debugging
+        \Illuminate\Support\Facades\Log::debug('Tenant not found for domain: ' . $currentDomain, [
+            'current_domain' => $currentDomain,
+            'central_connection' => $centralConnection
+        ]);
+        
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Failed to get tenant ID: ' . $e->getMessage(), [
+            'domain' => $currentDomain,
+            'exception' => $e->getMessage()
+        ]);
+    }
+    
+    return null;
+}
+
+/**
+ * Initialize tenant assets folder structure
+ * Creates necessary directories for tenant-specific assets
+ * 
+ * @param string $tenantId Tenant ID
+ * @return bool Success status
+ */
+function initializeTenantAssets($tenantId)
+{
+    $basePath = base_path('../assets/images/logo_icon/tenant_' . $tenantId);
+    
+    try {
+        if (!file_exists($basePath)) {
+            mkdir($basePath, 0755, true);
+        }
+        
+        // Copy default logos if they don't exist
+        $defaultLogo = base_path('../assets/images/logo_icon/logo.png');
+        $defaultLogoDark = base_path('../assets/images/logo_icon/logo_dark.png');
+        $defaultFavicon = base_path('../assets/images/logo_icon/favicon.png');
+        
+        if (file_exists($defaultLogo) && !file_exists($basePath . '/logo.png')) {
+            copy($defaultLogo, $basePath . '/logo.png');
+        }
+        
+        if (file_exists($defaultLogoDark) && !file_exists($basePath . '/logo_dark.png')) {
+            copy($defaultLogoDark, $basePath . '/logo_dark.png');
+        }
+        
+        if (file_exists($defaultFavicon) && !file_exists($basePath . '/favicon.png')) {
+            copy($defaultFavicon, $basePath . '/favicon.png');
+        }
+        
+        return true;
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Failed to initialize tenant assets: ' . $e->getMessage());
+        return false;
+    }
 }
 
 /**

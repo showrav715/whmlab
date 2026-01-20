@@ -22,6 +22,9 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     
+    // Temporary test route - DELETE after testing
+    require __DIR__ . '/test-tenant-path.php';
+    
     // Tenant Home
     Route::get('/', 'SiteController@index')->name('tenant.home');
     

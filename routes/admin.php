@@ -27,6 +27,40 @@ Route::namespace('Auth')->group(function () {
 });
 
 Route::middleware(['admin', 'admin.permission'])->group(function () {
+    
+    // Test route to verify tenant/admin context detection
+    Route::get('debug-context', function () {
+        $currentDomain = request()->getHost();
+        $appUrl = str_replace(['http://', 'https://'], '', env('APP_URL'));
+        $appUrl = rtrim($appUrl, '/');
+        
+        // Check database for tenant (use central connection)
+        $tenantDomain = null;
+        try {
+            $centralConnection = config('tenancy.database.central_connection', 'mysql');
+            $tenantDomain = \DB::connection($centralConnection)
+                ->table('tenant_domains')
+                ->where('domain', $currentDomain)
+                ->first();
+        } catch (\Exception $e) {
+            // Ignore
+        }
+        
+        return [
+            'current_domain' => $currentDomain,
+            'app_url' => $appUrl,
+            'domain_match' => ($currentDomain == $appUrl),
+            'isTenant()' => isTenant(),
+            'context' => isTenant() ? 'CENTRAL ADMIN' : 'TENANT SITE',
+            'currentTenantId()' => currentTenantId(),
+            'tenant_from_db' => $tenantDomain ? $tenantDomain->tenant_id : null,
+            'logo_path' => getFilePath('logoIcon'),
+            'absolute_path' => base_path('../' . getFilePath('logoIcon')),
+            'logo_url' => siteLogo(),
+            'central_db_connection' => config('tenancy.database.central_connection', 'mysql'),
+        ];
+    })->name('debug.context');
+ 
     Route::controller('AdminController')->group(function () {
         Route::get('dashboard', 'dashboard')->name('dashboard');
         Route::get('profile', 'profile')->name('profile');

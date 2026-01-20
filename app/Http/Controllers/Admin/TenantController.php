@@ -80,6 +80,9 @@ class TenantController extends Controller
             // Setup and verify tenant database
             $this->configureTenantDatabase($tenant, $databaseConfig);
 
+            // Initialize tenant assets folder with default logos
+            initializeTenantAssets($tenant->id);
+
             DB::commit();
 
             $notify[] = ['success', 'Tenant created successfully'];
@@ -194,6 +197,9 @@ class TenantController extends Controller
     {
         try {
             DB::beginTransaction();
+
+            // Delete tenant assets folder (logo, favicon, etc.)
+            $this->deleteTenantAssets($tenant->id);
 
             // Delete tenant database
             $this->deleteTenantDatabase($tenant);
@@ -399,6 +405,40 @@ class TenantController extends Controller
         
         // Note: All databases (auto, custom, remote) are manually managed
         // so we don't automatically delete them when tenant is removed
+    }
+
+    /**
+     * Delete tenant assets folder (logo, favicon, etc.)
+     * 
+     * @param string $tenantId
+     * @return void
+     */
+    private function deleteTenantAssets($tenantId)
+    {
+        try {
+            $tenantAssetsPath = base_path('../assets/images/logo_icon/tenant_' . $tenantId);
+            
+            if (file_exists($tenantAssetsPath) && is_dir($tenantAssetsPath)) {
+                // Delete all files in the directory
+                $files = glob($tenantAssetsPath . '/*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        unlink($file);
+                    }
+                }
+                
+                // Delete the directory
+                rmdir($tenantAssetsPath);
+                
+                Log::info("Deleted tenant assets folder for tenant: {$tenantId}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to delete tenant assets: " . $e->getMessage(), [
+                'tenant_id' => $tenantId,
+                'path' => $tenantAssetsPath ?? 'unknown'
+            ]);
+            // Don't throw exception, just log it - asset deletion shouldn't block tenant deletion
+        }
     }
 
     public function status(Tenant $tenant)
